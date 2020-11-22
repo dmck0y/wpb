@@ -1,25 +1,45 @@
 <script>
 	export let name;
+	import ArtboardBtn from './ArtboardBtn.svelte';
 </script>
 
 <main>
-	<h1>Hello {name}!</h1>
-	<p>Visit the <a href="https://svelte.dev/tutorial">Svelte tutorial</a> to learn how to build Svelte apps.</p>
+	<img href="favicon.png" />
+	<h1 class="logo-type">wastepaperbasket</h1>
+	<div class="artboard">
+		<ArtboardBtn>prev</ArtboardBtn>
+	</div>
+	<a>gallery</a>
 </main>
 
 <style>
 	main {
-		text-align: center;
-		padding: 1em;
 		max-width: 240px;
 		margin: 0 auto;
 	}
 
-	h1 {
-		color: #ff3e00;
-		text-transform: uppercase;
-		font-size: 4em;
-		font-weight: 100;
+	.logo-type {
+		font-size: 1.5rem;
+		font-weight: 500;
+		transform: translate(35px, 20px) rotate(90deg);
+		transform-origin: left center; 
+	}
+
+	.artboard {
+		margin: 4rem;
+		background: rgba(197, 197, 197, .25);
+		position: absolute;
+		top: 0;
+		bottom: 0;
+		left: 0;
+		right: 0;
+	}
+
+  a {
+		position: absolute;
+		bottom: 0;
+		display: block;
+		margin: 1rem;
 	}
 
 	@media (min-width: 640px) {
