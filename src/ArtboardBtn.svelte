@@ -1,7 +1,9 @@
 <script>
+  export let clickHandler;
+  export let disabled;
 </script>
 
-<button class="button-wrapper">
+<button on:click={clickHandler} disabled={disabled} class="button-wrapper">
   <div class="button">
     <slot></slot>
   </div>
