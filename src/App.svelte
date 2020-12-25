@@ -1,40 +1,47 @@
 <script>
 	import { onMount } from 'svelte';
+	// import { Router, Link, Route } from 'svetle-routing';
 	// import { createHashHistory } from 'svelte-history';
 	// let history = createHashHistory();
-	import ArtboardBtn from './ArtboardBtn.svelte';
+	import ArtboardBtn from './components/ArtboardBtn.svelte';
 
-	const PATH = '/images';
-	const images = [
-		`${PATH}/untitled.0002.jpg`,
-		`${PATH}/untitled.0003.jpg`,
-		`${PATH}/deck001.jpg`,
-		`${PATH}/deck002.jpg`,
-		`${PATH}/deck004.jpg`
-	];
+	const {apiHost, apiPort} = process.env;
 
+	const fetchImageUrls = (async () => {
+		const response = await fetch(`//${apiHost}/api/v1/assets`)
+		return await response.json();
+	})()
+	
 	let currentImage = 0;
 	function updateCurrent (inc) {
 		currentImage += inc;
-		// history.replace(`#page-${currentImage}`);
 	}
 
 	// onMount(() => {
 	// 	console.log('mounting')
+	// 	fetchImageUrls();
 	// });
 
+	// const Routes = () => {
+	// 	return <Router>
+	// 		<Route to='' />	
+	// 	</Router>
+	// }
 </script>
 
 <main>
-	<!-- <img href="favicon.png" /> -->
 	<h1 class="logo-type">wastepaperbasket</h1>
 	<div class="artboard full">
-		<nav class="image-nav full">
-			<ArtboardBtn disabled={currentImage === 0} clickHandler={() => updateCurrent(-1)}>prev</ArtboardBtn>
-			<ArtboardBtn disabled={currentImage === images.length -1} clickHandler={() => updateCurrent(1)}>next</ArtboardBtn>
-		</nav>
 		<div>
-			<img class="image-container" alt="art" src={images[currentImage]} />
+		{#await fetchImageUrls}
+			<p class="image-container">loading...</p>
+			{:then data}
+			<nav class="image-nav full">
+				<ArtboardBtn disabled={currentImage === 0} clickHandler={() => updateCurrent(-1)}>prev</ArtboardBtn>
+				<ArtboardBtn disabled={currentImage === data.images.length -1} clickHandler={() => updateCurrent(1)}>next</ArtboardBtn>
+			</nav>
+			<img async class="image-container" alt="art" src={data.images[currentImage].image} />
+		{/await}
 		</div>
 	</div>
 </main>
