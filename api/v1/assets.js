@@ -32,7 +32,8 @@ module.exports = (req, res) => {
 
   v2.api.resources({
     type: 'upload',
-    prefix: 'wpb'
+    prefix: 'wpb',
+    max_results: 999 
   }, (error, result) => {
     if (error) res.error
 
