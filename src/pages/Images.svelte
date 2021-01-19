@@ -1,37 +1,53 @@
 <script>
 	import {onMount} from 'svelte';
 	import ArtboardBtn from '../components/ArtboardBtn.svelte';
-	export let id;
-console.log({id})
+
+	export let params;
 
 	const {apiHost, apiPort} = process.env;
 	const fetchImageUrls = (async () => {
-		const response = await fetch(`//${apiHost}/api/v1/assets`)
-		return await response.json();
+		const response = await fetch(`//${apiHost}/api/v1/assets`);
+		const images = await response.json();
+		const imageIds = await images.images.map(image => Object.keys(image)[0]);
+
+		return images;
 	})();
 	
 	let currentImage = 0;
 
-	onMount(() => {
-		currentImage = id;
-	});
+	function updateCurrent (inc, data) {
+		const nextImageId = data.images[currentImage + inc].uuid;
+		const urlLen = window.location.pathname.split('/').length;
 
-	function updateCurrent (inc) {
+		const url = (urlLen === 2) ? `image/${nextImageId}` : `${nextImageId}`;
+		history.pushState({page: `Image ${nextImageId}`}, 'next', url);
 		currentImage += inc;
 	}
+
+	onMount(() => {
+    fetchImageUrls.then(data => {
+			if (!params) return;
+			data.images.forEach((image, i) => {
+				if(image.uuid === params.id) {
+					currentImage = i;
+				}
+			});
+		})
+	});
+
 </script>
 
 <div class="artboard full">
   <div>
-  {#await fetchImageUrls}
+		{#await fetchImageUrls}
     <p class="image-container">loading...</p>
     {:then data}
     <nav class="image-nav full">
-      <ArtboardBtn disabled={currentImage === 0} clickHandler={() => updateCurrent(-1)}>prev</ArtboardBtn>
-      <ArtboardBtn disabled={currentImage === data.images.length -1} clickHandler={() => updateCurrent(1)}>next</ArtboardBtn>
+      <ArtboardBtn disabled={currentImage === 0} clickHandler={() => updateCurrent(-1, data)}>prev</ArtboardBtn>
+      <ArtboardBtn disabled={currentImage === data.images.length -1} clickHandler={() => updateCurrent(1, data)}>next</ArtboardBtn>
     </nav>
-    <img async class="image-container" alt="art" src={data.images[currentImage].image} />
-  {/await}
+    <img async class="image-container" alt="art" src={data.images[currentImage].url} />
+		{/await}
   </div>
 </div>
 
