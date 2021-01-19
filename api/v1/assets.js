@@ -39,10 +39,13 @@ module.exports = (req, res) => {
 
     res.json({
       images: result.resources
-        .map(img => ({
-          image: img.secure_url,
-          date: new Date(img.created_at)
-        }))
+        .map(img => {
+          return {
+            uuid: img.asset_id,
+            url: img.secure_url,
+            date: new Date(img.created_at)
+          }
+        })
         .sort((a,b) => compareDesc(a.date, b.date))
     })
   })

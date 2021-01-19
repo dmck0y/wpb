@@ -4,7 +4,7 @@
   "scripts": {
     "build": "rollup -c",
     "dev": "rollup -c -w",
-    "start": "sirv public",
+    "start": "sirv public --single",
     "api-start": "npx vercel dev"
   },
   "devDependencies": {
@@ -21,8 +21,8 @@
     "cloudinary": "^1.23.0",
     "date-fns": "^2.16.1",
     "dotenv": "^8.2.0",
+    "page": "^1.11.6",
     "sirv-cli": "^1.0.0",
-    "svelte-history": "0.0.4",
-    "svelte-routing": "^1.4.2"
+    "svelte-history": "0.0.4"
   }
 }
