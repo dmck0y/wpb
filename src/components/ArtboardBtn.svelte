@@ -10,17 +10,17 @@
 </button>
 
 <style>
-
   .button-wrapper{
     padding: 0;
     border: none;
     cursor: pointer;
   }
 
-  .button-wrapper:focus,
-  .button-wrapper:hover {
-    
+  .button:focus,
+  .button:hover {
+    background: #dedede;
   }
+
   .button {
     display: flex;
     align-items: center;
@@ -28,6 +28,8 @@
     width: 60px;
     height: 40px;
     padding: 0 0 2px;
-    background: white;
+    background: #ececec;
+    transition: 250ms all ease;
   }
+
 </style>
