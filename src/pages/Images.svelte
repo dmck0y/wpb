@@ -38,9 +38,9 @@
 </script>
 
 <div class="artboard full">
-  <div>
+  <div class="loading-wrapper">
 		{#await fetchImageUrls}
-    <p class="image-container">loading...</p>
+			<p>loading...</p>
     {:then data}
     <nav class="image-nav full">
       <ArtboardBtn disabled={currentImage === 0} clickHandler={() => updateCurrent(-1, data)}>prev</ArtboardBtn>
@@ -66,18 +66,15 @@
     object-fit: contain;
 	}
 
-	.logo-type {
-		position: absolute;
-		font-size: 1.5rem;
-		font-weight: 500;
-		transform: translate(75px, 35px) rotate(90deg);
-		transform-origin: left center; 
-		z-index: 20;
+	.loading-wrapper {
+		display: flex;
+		height: 100vh;
+		justify-content: center;
+		align-items: center;
 	}
 
-	.artboard {
-		/* margin: 6rem 3rem 3rem; */
-		/* background: rgba(197, 197, 197, .25); */
+	.loading-wrapper p {
+		width: 100px;
 	}
 
 	.image-nav {
