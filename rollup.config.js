@@ -74,7 +74,7 @@ export default {
 			process: JSON.stringify({
 				env: {
 					isProd: production,
-					apiHost: production ? 'wastepaperbasket.art' : 'localhost:3000',
+					apiHost: production ? 'wastepaperbasket.ca' : 'localhost:3000',
 					protocol: production ? 'https://' : 'http://'
 				}
 			})
