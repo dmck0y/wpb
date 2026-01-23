@@ -6,7 +6,7 @@
 
 	const {apiHost, apiPort} = process.env;
 	const fetchImageUrls = (async () => {
-		const response = await fetch(`//${apiHost}/api/v1/assets`);
+		const response = await fetch(`https://www.${apiHost}/api/v1/assets`);
 		const images = await response.json();
 		const imageIds = await images.images.map(image => Object.keys(image)[0]);
 
