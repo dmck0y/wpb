@@ -3,5 +3,10 @@
 
 .DS_Store
 
-.vercel
+.wrangler
 .env
+.env.local
+.dev.vars
+!.env.development
+!.env.production
+!.dev.vars.example

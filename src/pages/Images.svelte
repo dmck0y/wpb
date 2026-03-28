@@ -1,37 +1,44 @@
 <script>
-	import {onMount} from 'svelte';
+	import {onMount, getContext} from 'svelte';
 	import ArtboardBtn from '../components/ArtboardBtn.svelte';
+	import { createGallery } from '../domain/gallery.js';
 
-	export let params;
+	export let params = {};
 
-	const {apiHost, apiPort} = process.env;
-	const fetchImageUrls = (async () => {
-		const response = await fetch(`https://www.${apiHost}/api/v1/assets`);
-		const images = await response.json();
-		const imageIds = await images.images.map(image => Object.keys(image)[0]);
-
-		return images;
-	})();
+	const router = getContext('router');
+	const apiUrl = import.meta.env.VITE_API_URL;
+	const gallery = createGallery(apiUrl);
+	
+	const fetchImageUrls = gallery.fetchImages();
 	
 	let currentImage = 0;
+	let imagesLoaded = false;
 
-	function updateCurrent (inc, data) {
-		const nextImageId = data.images[currentImage + inc].uuid;
-		const urlLen = window.location.pathname.split('/').length;
+	// Watch for params changes (when navigating via URL)
+	$: if (params?.id && imagesLoaded) {
+		const index = gallery.findImageIndexById(params.id);
+		if (index !== -1) {
+			currentImage = index;
+		}
+	}
 
-		const url = (urlLen === 2) ? `image/${nextImageId}` : `${nextImageId}`;
-		history.pushState({page: `Image ${nextImageId}`}, 'next', url);
+	function updateCurrent (inc) {
 		currentImage += inc;
+		const images = gallery.getImages();
+		const nextImageId = images[currentImage].uuid;
+		// Update URL without triggering navigation
+		window.history.pushState({}, '', `/images/${nextImageId}`);
 	}
 
 	onMount(() => {
-    fetchImageUrls.then(data => {
-			if (!params) return;
-			data.images.forEach((image, i) => {
-				if(image.uuid === params.id) {
-					currentImage = i;
+    fetchImageUrls.then(() => {
+			imagesLoaded = true;
+			if (params?.id) {
+				const index = gallery.findImageIndexById(params.id);
+				if (index !== -1) {
+					currentImage = index;
 				}
-			});
+			}
 		})
 	});
 
@@ -41,12 +48,12 @@
   <div class="loading-wrapper">
 		{#await fetchImageUrls}
 			<p>loading...</p>
-    {:then data}
+    {:then}
     <nav class="image-nav full">
-      <ArtboardBtn disabled={currentImage === 0} clickHandler={() => updateCurrent(-1, data)}>prev</ArtboardBtn>
-      <ArtboardBtn disabled={currentImage === data.images.length -1} clickHandler={() => updateCurrent(1, data)}>next</ArtboardBtn>
+      <ArtboardBtn disabled={currentImage === 0} clickHandler={() => updateCurrent(-1)}>prev</ArtboardBtn>
+      <ArtboardBtn disabled={currentImage === gallery.getTotalImages() - 1} clickHandler={() => updateCurrent(1)}>next</ArtboardBtn>
     </nav>
-    <img async class="image-container" alt="art" src={data.images[currentImage].url} />
+    <img async class="image-container" alt="art" src={gallery.getImageByIndex(currentImage).url} />
 		{/await}
   </div>
 </div>

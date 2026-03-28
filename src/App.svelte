@@ -1,27 +1,43 @@
 <script>
-	import router from 'page';
+	import { onMount, setContext } from 'svelte';
+	import navaid from 'navaid';
 	import Images from './pages/Images.svelte';
 	// import About from './pages/About.svelte';
 
 	let page;
-	let params;
+	let params = {};
 
-	router('/', () => page = Images);
-	// router('/about', () => page = About);
-	router('/image/:id?', (ctx, next) => {
-		params = ctx.params;
-		next();
-	}, () => page = Images);
+	const router = navaid('/', () => {
+		// Redirect root to /images
+		window.history.replaceState({}, '', '/images');
+		page = Images;
+		params = {};
+	})
+	.on('/images', () => {
+		page = Images;
+		params = {};
+	})
+	.on('/images/:id', (ctx) => {
+		page = Images;
+		params = { ...ctx.params }; // Force new object reference
+	})
+	// .on('/about', () => page = About)
+	.listen();
 
-	router.start();
+	// Expose router for child components
+	setContext('router', router);
+
+	onMount(() => {
+		return () => router.unlisten();
+	});
 </script>
 
 <main>
-	<a class='logo-wrapper' href="/">
+	<a class='logo-wrapper' href="/images">
 		<img class="logo" src="/wpb_logo_100.png" alt="wastepaperbasket" />
 		<h1>wastepaperbasket</h1>
 	</a>
-	<svelte:component this={page} params={params} />
+	<svelte:component this={page} {params} />
 </main>
 
 <style>
