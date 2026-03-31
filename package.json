@@ -9,6 +9,8 @@
     "dev": "vite dev --port 5173",
     "dev:wrangler": "wrangler pages dev --port 8788 --proxy 5173",
     "api-start": "npx wrangler pages dev dist",
+    "deploy": "npm run build && wrangler pages deploy dist --project-name wpb",
+    "deploy:preview": "npm run build && wrangler pages deploy dist --project-name wpb --branch preview",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
