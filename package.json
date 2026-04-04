@@ -18,10 +18,12 @@
     "test:e2e:debug": "playwright test --debug"
   },
   "devDependencies": {
+    "@cloudflare/workers-types": "^4.20260403.1",
     "@playwright/test": "^1.58.2",
     "@sveltejs/vite-plugin-svelte": "^5.1.1",
     "@vitest/ui": "^3.2.4",
     "svelte": "^5.55.0",
+    "typescript": "^6.0.2",
     "vite": "^6.4.1",
     "vitest": "^3.2.4",
     "wrangler": "^4.78.0"
