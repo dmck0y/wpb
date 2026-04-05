@@ -1,124 +1,142 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from "@playwright/test";
 
-test.describe('Gallery Application', () => {
-  test('should load the gallery page', async ({ page }) => {
-    await page.goto('/');
-    
-    // Should redirect to /images
+test.describe("Gallery Application", () => {
+  test("root URL redirects to /images", async ({ page }) => {
+    await page.goto("/");
     await expect(page).toHaveURL(/\/images/);
-    
-    // Should show wastepaperbasket logo
-    await expect(page.locator('h1')).toContainText('wastepaperbasket');
   });
 
-  test('should fetch and display images', async ({ page }) => {
-    // Mock the API response
-    await page.route('**/api/v1/assets', async route => {
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify({
-          images: [
-            { uuid: 'img1', url: 'https://via.placeholder.com/800x600/FF0000/FFFFFF?text=Image+1', date: '2024-01-01' },
-            { uuid: 'img2', url: 'https://via.placeholder.com/800x600/00FF00/FFFFFF?text=Image+2', date: '2024-01-02' },
-            { uuid: 'img3', url: 'https://via.placeholder.com/800x600/0000FF/FFFFFF?text=Image+3', date: '2024-01-03' },
-          ]
-        })
-      });
-    });
+  test("gallery page loads and displays images", async ({ page }) => {
+    await page.goto("/images");
 
-    await page.goto('/images');
-    
-    // Wait for loading to complete
-    await expect(page.locator('text=loading...')).toBeHidden({ timeout: 5000 });
-    
-    // Should display the first image
-    const img = page.locator('.image-container');
-    await expect(img).toBeVisible();
-    await expect(img).toHaveAttribute('src', /placeholder/);
-    
-    // Should have navigation buttons
-    await expect(page.locator('button:has-text("prev")')).toBeVisible();
-    await expect(page.locator('button:has-text("next")')).toBeVisible();
-    
-    // Prev should be disabled on first image
-    await expect(page.locator('button:has-text("prev")')).toBeDisabled();
+    // Should show wastepaperbasket branding
+    await expect(page.locator("text=wastepaperbasket")).toBeVisible();
+
+    // Should have image links to detail pages
+    const imageLinks = page.locator('a[href^="/images/"]');
+    await expect(imageLinks.first()).toBeVisible({ timeout: 10000 });
+
+    const count = await imageLinks.count();
+    expect(count).toBeGreaterThan(0);
   });
 
-  test('should navigate between images', async ({ page }) => {
-    // Mock the API response
-    await page.route('**/api/v1/assets', async route => {
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify({
-          images: [
-            { uuid: 'img1', url: 'https://via.placeholder.com/800x600/FF0000/FFFFFF?text=Image+1', date: '2024-01-01' },
-            { uuid: 'img2', url: 'https://via.placeholder.com/800x600/00FF00/FFFFFF?text=Image+2', date: '2024-01-02' },
-            { uuid: 'img3', url: 'https://via.placeholder.com/800x600/0000FF/FFFFFF?text=Image+3', date: '2024-01-03' },
-          ]
-        })
-      });
-    });
+  test("clicking an image navigates to detail view", async ({ page }) => {
+    await page.goto("/images");
 
-    await page.goto('/images');
-    await expect(page.locator('text=loading...')).toBeHidden({ timeout: 5000 });
-    
-    // Click next button
-    await page.locator('button:has-text("next")').click();
-    
-    // URL should update to /images/img2
-    await expect(page).toHaveURL(/\/images\/img2/);
-    
-    // Prev button should now be enabled
-    await expect(page.locator('button:has-text("prev")')).toBeEnabled();
+    // Wait for images to load
+    const imageLinks = page.locator('a[href^="/images/"]');
+    await expect(imageLinks.first()).toBeVisible({ timeout: 10000 });
+
+    // Get the first image link href
+    const firstHref = await imageLinks.first().getAttribute("href");
+    expect(firstHref).toBeTruthy();
+
+    // Click the first image
+    await imageLinks.first().click();
+
+    // Should navigate to the detail page
+    await expect(page).toHaveURL(firstHref);
+
+    // Should show the full image
+    const mainImage = page.locator("main img");
+    await expect(mainImage).toBeVisible();
   });
 
-  test('should handle API errors gracefully', async ({ page }) => {
-    // Mock API failure
-    await page.route('**/api/v1/assets', async route => {
-      await route.fulfill({
-        status: 500,
-        contentType: 'application/json',
-        body: JSON.stringify({ error: 'Server error' })
-      });
-    });
+  test("detail page shows next navigation link", async ({ page }) => {
+    await page.goto("/images");
 
-    await page.goto('/images');
-    
-    // Should show loading state initially
-    await expect(page.locator('text=loading...')).toBeVisible();
-    
-    // Wait a bit to see if error handling works
-    await page.waitForTimeout(2000);
+    // Get the first image link and navigate to it
+    const imageLinks = page.locator('a[href^="/images/"]');
+    await expect(imageLinks.first()).toBeVisible({ timeout: 10000 });
+    await imageLinks.first().click();
+
+    // First image should have a next link but no prev link
+    const nextLink = page.locator("#next-link");
+    await expect(nextLink).toBeVisible();
+
+    // prev link should not exist (first image)
+    const prevLink = page.locator("#prev-link");
+    await expect(prevLink).toHaveCount(0);
   });
 
-  test('should deep link to specific image', async ({ page }) => {
-    // Mock the API response
-    await page.route('**/api/v1/assets', async route => {
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify({
-          images: [
-            { uuid: 'img1', url: 'https://via.placeholder.com/800x600/FF0000/FFFFFF?text=Image+1', date: '2024-01-01' },
-            { uuid: 'img2', url: 'https://via.placeholder.com/800x600/00FF00/FFFFFF?text=Image+2', date: '2024-01-02' },
-            { uuid: 'img3', url: 'https://via.placeholder.com/800x600/0000FF/FFFFFF?text=Image+3', date: '2024-01-03' },
-          ]
-        })
-      });
-    });
+  test("prev/next navigation works on detail page", async ({ page }) => {
+    await page.goto("/images");
 
-    // Navigate directly to second image
-    await page.goto('/images/img2');
-    await expect(page.locator('text=loading...')).toBeHidden({ timeout: 5000 });
-    
-    // Should show the correct image
-    const img = page.locator('.image-container');
-    await expect(img).toBeVisible();
-    await expect(img).toHaveAttribute('src', /Image\+2/);
-    
-    // Prev should be enabled (not on first image)
-    await expect(page.locator('button:has-text("prev")')).toBeEnabled();
+    // Navigate to first image
+    const imageLinks = page.locator('a[href^="/images/"]');
+    await expect(imageLinks.first()).toBeVisible({ timeout: 10000 });
+    await imageLinks.first().click();
+
+    const firstUrl = page.url();
+
+    // Click next
+    const nextLink = page.locator("#next-link");
+    await expect(nextLink).toBeVisible();
+    await nextLink.click();
+
+    // URL should change
+    await expect(page).not.toHaveURL(firstUrl);
+
+    // Now we should have a prev link
+    const prevLink = page.locator("#prev-link");
+    await expect(prevLink).toBeVisible();
+
+    // Click prev to go back
+    await prevLink.click();
+    await expect(page).toHaveURL(firstUrl);
+  });
+
+  test("keyboard arrow navigation works", async ({ page }) => {
+    await page.goto("/images");
+
+    // Navigate to first image
+    const imageLinks = page.locator('a[href^="/images/"]');
+    await expect(imageLinks.first()).toBeVisible({ timeout: 10000 });
+    await imageLinks.first().click();
+
+    // Wait for the page to be fully loaded
+    await expect(page.locator("#next-link")).toBeVisible();
+    const firstUrl = page.url();
+
+    // Press right arrow to go to next image
+    await page.keyboard.press("ArrowRight");
+
+    // URL should change to next image
+    await expect(page).not.toHaveURL(firstUrl);
+
+    // Press left arrow to go back
+    await page.keyboard.press("ArrowLeft");
+
+    // Should be back to first image
+    await expect(page).toHaveURL(firstUrl);
+  });
+
+  test("gallery works without JavaScript", async ({ browser }) => {
+    // Create a context with JS disabled
+    const context = await browser.newContext({ javaScriptEnabled: false });
+    const page = await context.newPage();
+
+    // Gallery page loads
+    await page.goto("/images");
+    const imageLinks = page.locator('a[href^="/images/"]');
+    await expect(imageLinks.first()).toBeVisible({ timeout: 10000 });
+
+    // Navigate to detail page via click
+    await imageLinks.first().click();
+    await expect(page).toHaveURL(/\/images\/.+/);
+
+    // Main image should be visible
+    const mainImage = page.locator("main img");
+    await expect(mainImage).toBeVisible();
+
+    // Next link should work (it's a plain <a> tag)
+    const nextLink = page.locator("#next-link");
+    if ((await nextLink.count()) > 0) {
+      await nextLink.click();
+      // Should navigate to a different image
+      await expect(page.locator("main img")).toBeVisible();
+    }
+
+    await context.close();
   });
 });
